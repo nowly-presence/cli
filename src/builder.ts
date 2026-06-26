@@ -1,7 +1,7 @@
-import esbuild from "esbuild"
-import { existsSync, mkdirSync, readFileSync, writeFileSync, cpSync } from "fs"
-import { join } from "path"
 import { getDistDir, type PresenceMeta } from "@/discover"
+import esbuild from "esbuild"
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
+import { join } from "path"
 
 const nowlyPresencePlugin: esbuild.Plugin = {
   name: "nowly-presence",

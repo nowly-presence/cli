@@ -1,4 +1,4 @@
-import enquirer from "enquirer"
+import enquirer from "enquirer";
 
 const { prompt } = enquirer
 

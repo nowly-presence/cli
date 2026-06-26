@@ -1,7 +1,7 @@
-import type { Command } from "commander"
-import { buildPresence, buildAllPresences } from "@/builder"
+import { buildPresence } from "@/builder"
 import { getPresenceBySlug, getPresences } from "@/discover"
 import { logger, spinner } from "@/logger"
+import type { Command } from "commander"
 
 export const registerBuild = (program: Command) => {
   program

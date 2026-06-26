@@ -21,13 +21,9 @@ export const metadataJson = (data: {
   category: string
   color: string
   urls: string[]
-  descriptionEn: string
-  descriptionFr?: string
-  descriptionEs?: string
+  description: string
 }) => {
-  const desc: Record<string, string> = { "en-US": data.descriptionEn }
-  if (data.descriptionFr) desc["fr-FR"] = data.descriptionFr
-  if (data.descriptionEs) desc["es-ES"] = data.descriptionEs
+  const desc: Record<string, string> = { "en-US": data.description }
 
   return JSON.stringify(
     {

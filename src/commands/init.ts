@@ -1,10 +1,10 @@
+import { getLetterFromName, getSlugFromName, getSrcDir } from "@/discover"
+import { logger, spinner } from "@/logger"
+import { input, select } from "@/prompts"
+import { metadataJson, presenceTs } from "@/templates/presence"
 import type { Command } from "commander"
 import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { join } from "path"
-import { getSrcDir, getSlugFromName, getLetterFromName } from "@/discover"
-import { logger, spinner } from "@/logger"
-import { confirm, input, select } from "@/prompts"
-import { metadataJson, presenceTs } from "@/templates/presence"
 
 export const registerInit = (program: Command) => {
   program
@@ -50,26 +50,19 @@ export const registerInit = (program: Command) => {
       const author = opts?.author || await input("Author name:", { initial: "Nowly" })
       const github = opts?.github || await input("Author GitHub (optional):")
 
-      const descriptionEn = opts?.description || await input("Description (en-US):", { validate: (v) => v.trim().length > 0 || "Description is required" })
-
-      let descriptionFr: string | undefined
-      const addFr = await confirm("Add French (fr-FR) description?", true)
-      if (addFr) descriptionFr = await input("Description (fr-FR):")
-
-      let descriptionEs: string | undefined
-      const addEs = await confirm("Add Spanish (es-ES) description?", false)
-      if (addEs) descriptionEs = await input("Description (es-ES):")
+      const description = opts?.description || await input("Description (en-US):", { validate: (v) => v.trim().length > 0 || "Description is required" })
 
       spinner.start("Generating presence files...")
 
       mkdirSync(dir, { recursive: true })
       mkdirSync(join(dir, "assets"), { recursive: true })
 
-      writeFileSync(join(dir, "metadata.json"), metadataJson({ name, author, github, category, color, urls, descriptionEn, descriptionFr, descriptionEs }))
+      writeFileSync(join(dir, "metadata.json"), metadataJson({ name, author, github, category, color, urls, description }))
       writeFileSync(join(dir, "presence.ts"), presenceTs)
 
       spinner.succeed(`Presence "${name}" created at ${dir}`)
       logger.info(`Slug: ${slug}`)
+      logger.info("You can add more languages later by editing metadata.json")
       logger.info(`Next: run \`nowly build ${slug}\` to build it`)
     })
 }
