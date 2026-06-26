@@ -1,14 +1,23 @@
 import { getDistDir, type PresenceMeta } from "@/discover"
+import { createRequire } from "module"
 import esbuild from "esbuild"
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
 import { join } from "path"
+
+const _require = createRequire(import.meta.url)
+const sdkEntry = _require.resolve("@nowly/sdk")
+const sdkSrc = join(sdkEntry, "..")
 
 const nowlyPresencePlugin: esbuild.Plugin = {
   name: "nowly-presence",
   setup: (build) => {
     build.onResolve({ filter: /^@nowly\/presence$/ }, () => ({
-      path: require.resolve("@nowly/sdk"),
+      path: sdkEntry,
     }))
+    build.onResolve({ filter: /^@\// }, (args) => {
+      const resolved = join(sdkSrc, args.path.slice(2))
+      return { path: resolved + ".ts" }
+    })
   },
 }
 
