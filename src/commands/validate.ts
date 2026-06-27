@@ -31,9 +31,6 @@ export const registerValidate = (program: Command) => {
         if (!p.metadata.color) issues.push("Missing metadata.color")
         if (!p.metadata.category) issues.push("Missing metadata.category")
         if (!p.metadata.description?.["en-US"]) issues.push("Missing description.en-US")
-        if (!p.metadata.assets?.logo) issues.push("Missing assets.logo")
-        if (!p.metadata.assets?.icon) issues.push("Missing assets.icon")
-        if (!p.metadata.assets?.thumbnail) issues.push("Missing assets.thumbnail")
 
         const presenceTsPath = join(p.dir, "presence.ts")
         if (!existsSync(presenceTsPath)) issues.push("Missing presence.ts")

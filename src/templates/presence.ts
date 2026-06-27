@@ -36,11 +36,6 @@ export const metadataJson = (data: {
       color: data.color,
       category: data.category,
       description: desc,
-      assets: {
-        logo: "logo.png",
-        icon: "icon.png",
-        thumbnail: "thumbnail.jpg",
-      },
     },
     null,
     2,
