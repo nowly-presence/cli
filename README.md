@@ -166,4 +166,4 @@ presence.on("UpdateData", async () => {
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+[MIT](./LICENSE)
