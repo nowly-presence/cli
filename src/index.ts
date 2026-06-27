@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { registerBuild } from "@/commands/build"
 import { registerInit } from "@/commands/init"
 import { registerList } from "@/commands/list"
@@ -12,7 +11,7 @@ import "dotenv/config"
 const program = new Command()
   .name("nowly")
   .description("Nowly presence manager — create, build, validate presences")
-  .version("1.2.2")
+  .version("1.2.3")
 
 registerInit(program)
 registerBuild(program)

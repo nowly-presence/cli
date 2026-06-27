@@ -1,6 +1,6 @@
 {
   "name": "@nowly/cli",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "license": "MIT",
   "author": {
     "name": "Gaëtan H",
@@ -14,13 +14,17 @@
   ],
   "type": "module",
   "bin": {
-    "nowly": "./src/index.ts"
+    "nowly": "./bin/cli.js"
   },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
   "files": [
-    "src"
+    "dist",
+    "bin"
   ],
+  "scripts": {
+    "build": "tsup",
+    "prepack": "pnpm build"
+  },
   "dependencies": {
     "@nowly/sdk": "^1.2.2",
     "chalk": "^5.6.2",
@@ -32,6 +36,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3"
   }
