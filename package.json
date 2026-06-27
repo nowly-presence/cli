@@ -1,6 +1,6 @@
 {
   "name": "@nowly/cli",
-  "version": "1.2.4",
+  "version": "0.99.0",
   "license": "MIT",
   "author": {
     "name": "Gaëtan H",
@@ -26,18 +26,18 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@nowly/sdk": "^1.2.2",
+    "@nowly/sdk": "^0.99.1",
     "chalk": "^5.6.2",
-    "commander": "^13.1.0",
-    "dotenv": "^16.6.1",
+    "commander": "^15.0.0",
+    "dotenv": "^17.4.2",
     "enquirer": "^2.4.1",
-    "esbuild": "^0.25.12",
-    "ora": "^8.2.0"
+    "esbuild": "0.28.1",
+    "ora": "^9.4.1"
   },
   "devDependencies": {
-    "@types/node": "^22.20.0",
+    "@types/node": "^26.0.1",
     "tsup": "^8.5.1",
     "tsx": "^4.22.4",
-    "typescript": "^5.9.3"
+    "typescript": "6.0.3"
   }
 }

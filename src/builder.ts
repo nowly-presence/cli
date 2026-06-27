@@ -1,7 +1,7 @@
 import { getDistDir, type PresenceMeta } from "@/discover"
-import { createRequire } from "module"
 import esbuild from "esbuild"
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
+import { createRequire } from "module"
 import { join } from "path"
 
 const _require = createRequire(import.meta.url)
@@ -15,6 +15,10 @@ const nowlyPresencePlugin: esbuild.Plugin = {
       path: sdkEntry,
     }))
     build.onResolve({ filter: /^@\// }, (args) => {
+      const resolved = join(sdkSrc, args.path.slice(2))
+      return { path: resolved + ".ts" }
+    })
+    build.onResolve({ filter: /^#\// }, (args) => {
       const resolved = join(sdkSrc, args.path.slice(2))
       return { path: resolved + ".ts" }
     })
