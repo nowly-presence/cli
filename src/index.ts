@@ -1,4 +1,5 @@
 import { registerBuild } from "@/commands/build"
+import { registerExtension } from "@/commands/extension"
 import { registerInit } from "@/commands/init"
 import { registerList } from "@/commands/list"
 import { registerValidate } from "@/commands/validate"
@@ -15,6 +16,7 @@ const program = new Command()
 
 registerInit(program)
 registerBuild(program)
+registerExtension(program)
 registerList(program)
 registerValidate(program)
 
