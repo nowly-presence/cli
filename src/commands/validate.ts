@@ -3,6 +3,7 @@ import { logger } from "@/logger"
 import type { Command } from "commander"
 import { existsSync } from "fs"
 import { join } from "path"
+import { loadPresenceLanguages } from "@/languages"
 
 export const registerValidate = (program: Command) => {
   program
@@ -34,6 +35,12 @@ export const registerValidate = (program: Command) => {
 
         const presenceTsPath = join(p.dir, "presence.ts")
         if (!existsSync(presenceTsPath)) issues.push("Missing presence.ts")
+
+        try {
+          loadPresenceLanguages(p.dir)
+        } catch (error) {
+          issues.push(error instanceof Error ? error.message : "Invalid language packs")
+        }
 
         if (issues.length === 0) {
           logger.success(`${p.name} ✓`)

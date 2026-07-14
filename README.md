@@ -19,7 +19,7 @@ cd src/Y/YouTube
 nowly build YouTube
 ```
 
-`nowly build` outputs to `dist/presences/{slug}/` with `bundle.js`, `metadata.json`, and `settings.json`.
+`nowly build` outputs to `dist/presences/{slug}/` with `bundle.js`, `metadata.json`, and optional settings and language packs.
 
 ## Commands
 
@@ -65,7 +65,30 @@ Each build produces:
 - `dist/presences/{slug}/settings.json` — Extracted user settings (if any)
 - `dist/presences/{slug}/assets/` — Copied assets
 
-A `dist/presences/registry.json` is generated listing all built presences.
+A `dist/presences/registry.json` is generated listing all built presences. When a presence
+contains a `languages` directory, its validated JSON files are also copied to
+`dist/presences/{slug}/languages/` and included in generated metadata.
+
+### Optional language packs
+
+A presence can keep using inline strings without adding language files. To localize its Discord text, add all three supported dictionaries:
+
+```text
+src/Y/YouTube/languages/
+├── en-US.json
+├── fr-FR.json
+└── es-ES.json
+```
+
+Each file must be a flat JSON object containing the same keys and string values. `en-US.json` is the reference dictionary and runtime fallback. Invalid JSON, unsupported files, missing locales, non-string values, and mismatched keys fail validation and builds.
+
+Use the English dictionary to get typed autocomplete without generating types:
+
+```typescript
+import type enUS from "./languages/en-US.json"
+
+const strings = await presence.getStrings<typeof enUS>()
+```
 
 ### `nowly list` (alias: `ls`)
 
