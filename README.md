@@ -66,15 +66,15 @@ Each build produces:
 - `dist/presences/{slug}/assets/` — Copied assets
 
 A `dist/presences/registry.json` is generated listing all built presences. When a presence
-contains a `languages` directory, its validated JSON files are also copied to
-`dist/presences/{slug}/languages/` and included in generated metadata.
+contains a `locales` directory, its validated JSON files are also copied to
+`dist/presences/{slug}/locales/` and included in generated metadata.
 
 ### Optional language packs
 
 A presence can keep using inline strings without adding language files. To localize its Discord text, add all three supported dictionaries:
 
 ```text
-src/Y/YouTube/languages/
+src/Y/YouTube/locales/
 ├── en-US.json
 ├── fr-FR.json
 └── es-ES.json
@@ -85,9 +85,9 @@ Each file must be a flat JSON object containing the same keys and string values.
 Use the English dictionary to get typed autocomplete without generating types:
 
 ```typescript
-import type enUS from "./languages/en-US.json"
+import type enUS from "./locales/en-US.json"
 
-const strings = await presence.getStrings<typeof enUS>()
+const locale = await presence.getStrings<typeof enUS>()
 ```
 
 ### `nowly list` (alias: `ls`)

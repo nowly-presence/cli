@@ -1,7 +1,7 @@
 import { getLetterFromName, getSlugFromName, getSrcDir } from "@/discover"
 import { logger, spinner } from "@/logger"
 import { input, select } from "@/prompts"
-import { metadataJson, presenceTs } from "@/templates/presence"
+import { localeJson, metadataJson, presenceTs } from "@/templates/presence"
 import type { Command } from "commander"
 import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { join } from "path"
@@ -56,13 +56,16 @@ export const registerInit = (program: Command) => {
 
       mkdirSync(dir, { recursive: true })
       mkdirSync(join(dir, "assets"), { recursive: true })
+      mkdirSync(join(dir, "locales"), { recursive: true })
 
       writeFileSync(join(dir, "metadata.json"), metadataJson({ name, author, github, category, color, urls, description }))
       writeFileSync(join(dir, "presence.ts"), presenceTs)
+      writeFileSync(join(dir, "locales", "en-US.json"), localeJson("Browsing {hostname}"))
+      writeFileSync(join(dir, "locales", "fr-FR.json"), localeJson("Parcourt {hostname}"))
+      writeFileSync(join(dir, "locales", "es-ES.json"), localeJson("Navegando por {hostname}"))
 
       spinner.succeed(`Presence "${name}" created at ${dir}`)
       logger.info(`Slug: ${slug}`)
-      logger.info("You can add more languages later by editing metadata.json")
       logger.info(`Next: run \`nowly build ${slug}\` to build it`)
     })
 }

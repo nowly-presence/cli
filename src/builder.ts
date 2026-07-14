@@ -3,7 +3,7 @@ import esbuild from "esbuild"
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
 import { createRequire } from "module"
 import { join } from "path"
-import { loadPresenceLanguages } from "@/languages"
+import { loadPresenceLocales } from "@/locales"
 
 const _require = createRequire(import.meta.url)
 const sdkEntry = _require.resolve("@nowly/sdk")
@@ -30,7 +30,7 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
   const presenceTsPath = join(p.dir, "presence.ts")
   if (!existsSync(presenceTsPath)) return null
 
-  const languages = loadPresenceLanguages(p.dir)
+  const locales = loadPresenceLocales(p.dir)
 
   const distDir = join(getDistDir(cwd), "presences", p.slug)
   mkdirSync(distDir, { recursive: true })
@@ -61,7 +61,7 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
     writeFileSync(join(distDir, "settings.json"), JSON.stringify(settings, null, 2))
   }
 
-  const metadata = languages ? { ...p.metadata, languages } : p.metadata
+  const metadata = locales ? { ...p.metadata, locales } : p.metadata
   writeFileSync(join(distDir, "metadata.json"), JSON.stringify(metadata, null, 2))
 
   const assetsDir = join(p.dir, "assets")
@@ -71,9 +71,9 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
     cpSync(assetsDir, distAssets, { recursive: true })
   }
 
-  const languagesDir = join(p.dir, "languages")
-  if (languages) {
-    cpSync(languagesDir, join(distDir, "languages"), { recursive: true })
+  const localesDir = join(p.dir, "locales")
+  if (locales) {
+    cpSync(localesDir, join(distDir, "locales"), { recursive: true })
   }
 
   return bundle
@@ -87,8 +87,8 @@ export const buildAllPresences = async (presences: PresenceMeta[], cwd?: string)
     const bundle = await buildPresence(p, cwd)
     if (bundle) {
       const settings = extractSettingsFromFile(p.dir)
-      const languages = loadPresenceLanguages(p.dir)
-      registry.push({ ...p.metadata, slug: p.slug, settings, ...(languages ? { languages } : {}) })
+      const locales = loadPresenceLocales(p.dir)
+      registry.push({ ...p.metadata, slug: p.slug, settings, ...(locales ? { locales } : {}) })
     }
   }
 

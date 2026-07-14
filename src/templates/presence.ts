@@ -1,18 +1,23 @@
-export const presenceTs = `import { PresenceType } from "@nowly/presence"
+export const presenceTs = `import { PresenceType } from "@nowly/sdk"
+import type enUS from "./locales/en-US.json"
 
 const presence = new Presence()
 
 presence.on("UpdateData", async () => {
   const { hostname, pathname, href } = document.location
+  const locale = await presence.getStrings<typeof enUS>()
 
   await presence.setActivity({
-    details: \`Browsing \${hostname}\`,
+    details: presence.formatString(locale.browsing, { hostname }),
     state: pathname,
     largeImageKey: Assets.Logo,
     type: PresenceType.Watching,
   })
 })
 `
+
+export const localeJson = (browsing: string): string =>
+  JSON.stringify({ browsing }, null, 2)
 
 export const metadataJson = (data: {
   name: string
