@@ -1,14 +1,28 @@
 import { buildPresence } from "@/builder"
-import { getPresenceBySlug, getPresences } from "@/discover"
+import { getPresenceBySlug, getPresences, type PresenceMeta } from "@/discover"
 import { logger, spinner } from "@/logger"
+import { watchPresenceDirs } from "@/watch"
 import type { Command } from "commander"
+
+const buildOne = async (p: PresenceMeta, exitOnFail: boolean): Promise<boolean> => {
+  spinner.start(`Building "${p.name}"...`)
+  const bundle = await buildPresence(p)
+  if (!bundle) {
+    spinner.fail(`Build failed for "${p.name}"`)
+    if (exitOnFail) process.exit(1)
+    return false
+  }
+  spinner.succeed(`Built "${p.name}" (${(bundle.length / 1024).toFixed(1)} kB)`)
+  return true
+}
 
 export const registerBuild = (program: Command) => {
   program
     .command("build")
     .description("Build presence bundles")
     .argument("[slug]", "Presence slug (builds all if omitted)")
-    .action(async (slug?: string) => {
+    .option("-w, --watch", "Rebuild when presence source files change")
+    .action(async (slug?: string, opts?: { watch?: boolean }) => {
       logger.newline()
 
       if (slug) {
@@ -18,13 +32,11 @@ export const registerBuild = (program: Command) => {
           process.exit(1)
         }
 
-        spinner.start(`Building "${p.name}"...`)
-        const bundle = await buildPresence(p)
-        if (!bundle) {
-          spinner.fail(`Build failed for "${slug}"`)
-          process.exit(1)
-        }
-        spinner.succeed(`Built "${p.name}" (${(bundle.length / 1024).toFixed(1)} kB)`)
+        await buildOne(p, true)
+        if (!opts?.watch) return
+        watchPresenceDirs([p], async (target) => {
+          await buildOne(target, false)
+        })
         return
       }
 
@@ -39,18 +51,16 @@ export const registerBuild = (program: Command) => {
       let fail = 0
 
       for (const p of presences) {
-        spinner.start(`Building "${p.name}"...`)
-        const bundle = await buildPresence(p)
-        if (bundle) {
-          spinner.succeed(`Built "${p.name}" (${(bundle.length / 1024).toFixed(1)} kB)`)
-          ok++
-        } else {
-          spinner.fail(`Build failed for "${p.name}"`)
-          fail++
-        }
+        if (await buildOne(p, false)) ok++
+        else fail++
       }
 
       logger.newline()
       logger.success(`${ok} built, ${fail} failed`)
+
+      if (!opts?.watch) return
+      watchPresenceDirs(presences, async (presence) => {
+        await buildOne(presence, false)
+      })
     })
 }

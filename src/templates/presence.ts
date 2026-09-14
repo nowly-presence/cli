@@ -1,17 +1,31 @@
 export const presenceTs = `import { PresenceType } from "@nowly/sdk"
 import type enUS from "./locales/en-US.json"
 
+const settings = Presence.Settings({
+  showButtons: {
+    type: "boolean",
+    default: true,
+    label: {
+      "en-US": "Show buttons",
+      "fr-FR": "Afficher les boutons",
+      "es-ES": "Mostrar botones",
+    },
+  },
+})
+
 const presence = new Presence()
 
 presence.on("UpdateData", async () => {
   const { hostname, pathname, href } = document.location
   const locale = await presence.getStrings<typeof enUS>()
+  const showButtons = await presence.getSetting<boolean>("showButtons")
 
   await presence.setActivity({
     details: presence.formatString(locale.browsing, { hostname }),
     state: pathname,
     largeImageKey: Assets.Logo,
     type: PresenceType.Watching,
+    buttons: showButtons === false ? undefined : [{ label: hostname, url: href }],
   })
 })
 `

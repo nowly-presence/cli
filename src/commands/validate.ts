@@ -32,9 +32,17 @@ export const registerValidate = (program: Command) => {
         if (!p.metadata.color) issues.push("Missing metadata.color")
         if (!p.metadata.category) issues.push("Missing metadata.category")
         if (!p.metadata.description?.["en-US"]) issues.push("Missing description.en-US")
+        const url = p.metadata.url
+        if (!url || (Array.isArray(url) && url.length === 0)) issues.push("Missing metadata.url")
 
         const presenceTsPath = join(p.dir, "presence.ts")
         if (!existsSync(presenceTsPath)) issues.push("Missing presence.ts")
+
+        const enUsLocale = join(p.dir, "locales", "en-US.json")
+        if (!existsSync(enUsLocale)) issues.push("Missing locales/en-US.json")
+
+        const assetsDir = join(p.dir, "assets")
+        if (!existsSync(assetsDir)) issues.push("Missing assets/ directory")
 
         try {
           loadPresenceLocales(p.dir)

@@ -13,7 +13,7 @@ import "dotenv/config"
 const program = new Command()
   .name("nowly")
   .description("Nowly presence manager — create, build, validate presences")
-  .version("1.0.0")
+  .version("1.4.1")
 
 registerInit(program)
 registerBuild(program)
@@ -32,6 +32,7 @@ const showInteractive = async () => {
     { name: "init" as any, message: "Create a new presence" },
     { name: "build" as any, message: "Build presences" },
     { name: "pack" as any, message: "Pack a presence zip" },
+    { name: "extension" as any, message: "Set up a local extension for testing" },
     { name: "list" as any, message: "List all presences" },
     { name: "validate" as any, message: "Validate presences" },
     { name: "exit" as any, message: "Exit" },
@@ -51,6 +52,9 @@ const showInteractive = async () => {
       await program.parseAsync(["pack", slug], { from: "user" })
       break
     }
+    case "extension":
+      await program.parseAsync(["extension"], { from: "user" })
+      break
     case "list":
       await program.parseAsync(["list"], { from: "user" })
       break
