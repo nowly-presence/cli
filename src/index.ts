@@ -1,10 +1,11 @@
+import { registerPack } from "@/commands/pack"
 import { registerBuild } from "@/commands/build"
 import { registerExtension } from "@/commands/extension"
 import { registerInit } from "@/commands/init"
 import { registerList } from "@/commands/list"
 import { registerValidate } from "@/commands/validate"
 import { logger } from "@/logger"
-import { confirm, select } from "@/prompts"
+import { confirm, input, select } from "@/prompts"
 import chalk from "chalk"
 import { Command } from "commander"
 import "dotenv/config"
@@ -16,6 +17,7 @@ const program = new Command()
 
 registerInit(program)
 registerBuild(program)
+registerPack(program)
 registerExtension(program)
 registerList(program)
 registerValidate(program)
@@ -29,6 +31,7 @@ const showInteractive = async () => {
   const action = await select("What would you like to do?", [
     { name: "init" as any, message: "Create a new presence" },
     { name: "build" as any, message: "Build presences" },
+    { name: "pack" as any, message: "Pack a presence zip" },
     { name: "list" as any, message: "List all presences" },
     { name: "validate" as any, message: "Validate presences" },
     { name: "exit" as any, message: "Exit" },
@@ -43,6 +46,11 @@ const showInteractive = async () => {
     case "build":
       await program.parseAsync(["build"], { from: "user" })
       break
+    case "pack": {
+      const slug = await input("Presence slug")
+      await program.parseAsync(["pack", slug], { from: "user" })
+      break
+    }
     case "list":
       await program.parseAsync(["list"], { from: "user" })
       break

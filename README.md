@@ -90,6 +90,29 @@ import type enUS from "./locales/en-US.json"
 const locale = await presence.getStrings<typeof enUS>()
 ```
 
+### `nowly pack <slug>`
+
+Build a presence and zip it for drop-install in the extension Debug panel.
+
+```bash
+nowly pack youtube
+```
+
+Writes `dist/packs/{slug}.zip` (`metadata.json` + `bundle.js`, plus assets and locales when present). Unsigned zips install only on unpacked builds or with developer mode enabled.
+
+### `nowly extension <slugs...>`
+
+Download (or copy) a Chrome dev extension and bake one or more built presences into it.
+
+```bash
+nowly extension youtube
+nowly extension youtube github --from ../nowly/apps/extension/dist/chrome
+```
+
+Writes `dist/extension-dev` with `dev-presences.json`. Load that folder unpacked at `chrome://extensions`.
+
+See [Load and test locally](https://nowly.me/docs/presence-development/load-and-test).
+
 ### `nowly list` (alias: `ls`)
 
 List all presences in `src/`.
@@ -126,6 +149,7 @@ Run `nowly` with no arguments to open a menu:
 │                                  │
 │  ○ Create a new presence         │
 │  ○ Build presences               │
+│  ○ Pack a presence zip           │
 │  ○ List all presences            │
 │  ○ Validate presences            │
 │  ○ Exit                          │

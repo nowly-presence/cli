@@ -1,28 +1,22 @@
 import { getDistDir, type PresenceMeta } from "@/discover"
 import esbuild from "esbuild"
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
-import { createRequire } from "module"
 import { join } from "path"
+import { fileURLToPath } from "url"
 import { loadPresenceLocales } from "@/locales"
 
-const _require = createRequire(import.meta.url)
-const sdkEntry = _require.resolve("@nowly/sdk")
-const sdkSrc = join(sdkEntry, "..")
+const sdkEntry = fileURLToPath(import.meta.resolve("@nowly/sdk"))
+const sdkSrc = join(sdkEntry, "..", "..", "src")
 
 const nowlyPresencePlugin: esbuild.Plugin = {
   name: "nowly-presence",
   setup: (build) => {
-    build.onResolve({ filter: /^@nowly\/presence$/ }, () => ({
+    build.onResolve({ filter: /^@nowly\/(presence|sdk)$/ }, () => ({
       path: sdkEntry,
     }))
-    build.onResolve({ filter: /^@\// }, (args) => {
-      const resolved = join(sdkSrc, args.path.slice(2))
-      return { path: resolved + ".ts" }
-    })
-    build.onResolve({ filter: /^#\// }, (args) => {
-      const resolved = join(sdkSrc, args.path.slice(2))
-      return { path: resolved + ".ts" }
-    })
+    build.onResolve({ filter: /^#\// }, (args) => ({
+      path: join(sdkSrc, args.path.slice(2)) + ".ts",
+    }))
   },
 }
 
@@ -47,6 +41,10 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
     legalComments: "none",
     target: "es2022",
     platform: "browser",
+    alias: {
+      "@nowly/sdk": sdkEntry,
+      "@nowly/presence": sdkEntry,
+    },
     plugins: [nowlyPresencePlugin],
     write: true,
   })

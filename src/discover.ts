@@ -18,11 +18,19 @@ export interface PresenceMeta {
 
 const DEFAULT_SRC = "src"
 
+const resolveWorkspace = (cwd?: string): string => {
+  const base = cwd ?? process.cwd()
+  if (existsSync(join(base, DEFAULT_SRC))) return base
+  const nested = join(base, "packages", "presences")
+  if (existsSync(join(nested, DEFAULT_SRC))) return nested
+  return base
+}
+
 export const getSrcDir = (cwd?: string): string =>
-  join(cwd ?? process.cwd(), DEFAULT_SRC)
+  join(resolveWorkspace(cwd), DEFAULT_SRC)
 
 export const getDistDir = (cwd?: string): string =>
-  join(cwd ?? process.cwd(), "dist")
+  join(resolveWorkspace(cwd), "dist")
 
 export const getPresences = (cwd?: string): PresenceMeta[] => {
   const src = getSrcDir(cwd)
