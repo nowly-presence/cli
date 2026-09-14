@@ -26,18 +26,18 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@nowly/sdk": "^0.99.1",
+    "@nowly/sdk": "workspace:*",
     "chalk": "^5.6.2",
     "commander": "^15.0.0",
     "dotenv": "^17.4.2",
     "enquirer": "^2.4.1",
-    "esbuild": "0.28.1",
+    "esbuild": "0.28.2",
     "ora": "^9.4.1"
   },
   "devDependencies": {
-    "@types/node": "^26.0.1",
+    "@types/node": "^26.5.1",
     "tsup": "^8.5.1",
-    "tsx": "^4.22.4",
+    "tsx": "^4.23.13",
     "typescript": "6.0.3"
   }
 }
