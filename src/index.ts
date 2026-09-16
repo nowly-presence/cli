@@ -12,7 +12,7 @@ import "dotenv/config"
 
 const program = new Command()
   .name("nowly")
-  .description("Nowly presence manager — create, build, validate presences")
+  .description("Nowly presence manager - create, build, validate presences")
   .version("1.4.1")
 
 registerInit(program)

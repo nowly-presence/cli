@@ -29,12 +29,12 @@ Scaffold a new presence.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `--category` | string | — | `streaming`, `music`, `video`, `social`, `gaming`, `tools`, `ai`, `learning`, `creator`, `other` |
+| `--category` | string | - | `streaming`, `music`, `video`, `social`, `gaming`, `tools`, `ai`, `learning`, `creator`, `other` |
 | `--color` | hex | `#555555` | Accent color for the presence |
-| `--urls` | string | — | Comma-separated list of URLs the presence runs on |
+| `--urls` | string | - | Comma-separated list of URLs the presence runs on |
 | `--author` | string | `Nowly` | Author name |
-| `--github` | string | — | Author GitHub handle |
-| `--description` | string | — | Short description (en-US) |
+| `--github` | string | - | Author GitHub handle |
+| `--description` | string | - | Short description (en-US) |
 
 Omitting an option starts an interactive prompt.
 
@@ -60,10 +60,10 @@ nowly build youtube      # Build only the "youtube" presence
 ```
 
 Each build produces:
-- `dist/presences/{slug}/bundle.js` — Minified IIFE (esbuild, `es2022` target)
-- `dist/presences/{slug}/metadata.json` — Presence metadata
-- `dist/presences/{slug}/settings.json` — Extracted user settings (if any)
-- `dist/presences/{slug}/assets/` — Copied assets
+- `dist/presences/{slug}/bundle.js` - Minified IIFE (esbuild, `es2022` target)
+- `dist/presences/{slug}/metadata.json` - Presence metadata
+- `dist/presences/{slug}/settings.json` - Extracted user settings (if any)
+- `dist/presences/{slug}/assets/` - Copied assets
 
 A `dist/presences/registry.json` is generated listing all built presences. When a presence
 contains a `locales` directory, its validated JSON files are also copied to
