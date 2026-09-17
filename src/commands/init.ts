@@ -1,6 +1,6 @@
 import { getLetterFromName, getSlugFromName, getSrcDir } from "@/discover"
 import { logger, spinner } from "@/logger"
-import { input, select } from "@/prompts"
+import { input, select, confirm } from "@/prompts"
 import { localeJson, metadataJson, presenceTs } from "@/templates/presence"
 import type { Command } from "commander"
 import { existsSync, mkdirSync, writeFileSync } from "fs"
@@ -17,7 +17,8 @@ export const registerInit = (program: Command) => {
     .option("--author <name>", "Author name")
     .option("--github <handle>", "Author GitHub handle")
     .option("--description <text>", "Description (en-US)")
-    .action(async (nameArg?: string, opts?: { category?: string; color?: string; urls?: string; author?: string; github?: string; description?: string }) => {
+    .option("--discord-native", "Discord already supports this platform if the user links their account")
+    .action(async (nameArg?: string, opts?: { category?: string; color?: string; urls?: string; author?: string; github?: string; description?: string; discordNative?: boolean }) => {
       logger.newline()
       logger.title("✦ Create a new presence")
 
@@ -51,6 +52,8 @@ export const registerInit = (program: Command) => {
       const github = opts?.github || await input("Author GitHub (optional):")
 
       const description = opts?.description || await input("Description (en-US):", { validate: (v) => v.trim().length > 0 || "Description is required" })
+      const discordNative = opts?.discordNative === true
+        || (opts?.discordNative === undefined && await confirm("Does Discord already show this platform if the user links their account?", false))
 
       spinner.start("Generating presence files...")
 
@@ -58,7 +61,7 @@ export const registerInit = (program: Command) => {
       mkdirSync(join(dir, "assets"), { recursive: true })
       mkdirSync(join(dir, "locales"), { recursive: true })
 
-      writeFileSync(join(dir, "metadata.json"), metadataJson({ name, author, github, category, color, urls, description }))
+      writeFileSync(join(dir, "metadata.json"), metadataJson({ name, author, github, category, color, urls, description, discordNative }))
       writeFileSync(join(dir, "presence.ts"), presenceTs)
       writeFileSync(join(dir, "locales", "en-US.json"), localeJson("Browsing {hostname}"))
       writeFileSync(join(dir, "locales", "fr-FR.json"), localeJson("Parcourt {hostname}"))

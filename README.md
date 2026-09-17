@@ -35,11 +35,13 @@ Scaffold a new presence.
 | `--author` | string | `Nowly` | Author name |
 | `--github` | string | - | Author GitHub handle |
 | `--description` | string | - | Short description (en-US) |
+| `--discord-native` | boolean | prompt | Write `discordNative: true` when Discord already supports the platform via account linking |
 
-Omitting an option starts an interactive prompt.
+Omitting an option starts an interactive prompt. Without `--discord-native`, init asks this as a yes/no (default no) and only writes the flag when the answer is yes.
 
 ```bash
 nowly init "Netflix" --category streaming --color "#E50914" --urls "netflix.com" --author "Steellgold"
+nowly init "Spotify" --discord-native
 ```
 
 Creates:
@@ -137,7 +139,7 @@ nowly validate           # Validate all presences
 nowly validate youtube   # Validate only "youtube"
 ```
 
-Checks for required fields: `name`, `color`, `category`, `description.en-US`, `assets.logo`, `assets.icon`, `assets.thumbnail`, and that `presence.ts` exists.
+Checks for required fields: `name`, `color`, `category`, `description.en-US`, `url`, `presence.ts`, `locales/en-US.json`, and `assets/`. If `discordNative` is present, it must be a boolean.
 
 ## Interactive mode
 

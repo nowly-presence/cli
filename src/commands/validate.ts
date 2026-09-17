@@ -34,6 +34,9 @@ export const registerValidate = (program: Command) => {
         if (!p.metadata.description?.["en-US"]) issues.push("Missing description.en-US")
         const url = p.metadata.url
         if (!url || (Array.isArray(url) && url.length === 0)) issues.push("Missing metadata.url")
+        if (p.metadata.discordNative != null && typeof p.metadata.discordNative !== "boolean") {
+          issues.push("metadata.discordNative must be a boolean")
+        }
 
         const presenceTsPath = join(p.dir, "presence.ts")
         if (!existsSync(presenceTsPath)) issues.push("Missing presence.ts")

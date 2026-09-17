@@ -41,6 +41,7 @@ export const metadataJson = (data: {
   color: string
   urls: string[]
   description: string
+  discordNative?: boolean
 }) => {
   const desc: Record<string, string> = { "en-US": data.description }
 
@@ -54,6 +55,7 @@ export const metadataJson = (data: {
       url: data.urls,
       color: data.color,
       category: data.category,
+      ...(data.discordNative ? { discordNative: true } : {}),
       description: desc,
     },
     null,
