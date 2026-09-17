@@ -20,7 +20,7 @@ import { join } from "path"
 import type { Command } from "commander"
 
 const EXTENSION_DEV_DIR = "extension-dev"
-const CDN_EXTENSION_URL = "https://cdn.nowly.me/extension/nowly-chrome-dev.zip"
+const CDN_EXTENSION_URL = "https://cdn.nowly.me/extension/nowly-canary.zip"
 
 const sha256Base64Url = async (input: string): Promise<string> => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input))
