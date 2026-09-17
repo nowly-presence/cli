@@ -1,0 +1,2 @@
+overrides:
+  '@nowly/cli': 'link:'

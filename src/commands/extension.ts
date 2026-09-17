@@ -134,6 +134,11 @@ export const registerExtension = (program: Command): void => {
         const metadata = JSON.parse(readFileSync(metadataPath, "utf-8")) as Record<string, unknown>
         metadata.slug = slug
 
+        const settingsPath = join(distDir, "presences", slug, "settings.json")
+        if (existsSync(settingsPath)) {
+          metadata.settings = JSON.parse(readFileSync(settingsPath, "utf-8"))
+        }
+
         const sha256 = await sha256Base64Url(bundle)
         const metadataHash = await sha256Base64Url(canonicalJson(metadata))
 
