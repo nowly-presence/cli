@@ -9,11 +9,14 @@ import { confirm, input, select } from "@/prompts"
 import chalk from "chalk"
 import { Command } from "commander"
 import "dotenv/config"
+import { createRequire } from "node:module"
+
+const { version } = createRequire(import.meta.url)("../package.json") as { version: string }
 
 const program = new Command()
   .name("nowly")
   .description("Nowly presence manager - create, build, validate presences")
-  .version("1.5.0")
+  .version(version)
 
 registerInit(program)
 registerBuild(program)

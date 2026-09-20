@@ -49,7 +49,11 @@ Creates:
 src/N/Netflix/
 ├── presence.ts
 ├── metadata.json
-└── assets/
+├── assets/
+└── locales/
+    ├── en-US.json
+    ├── fr-FR.json
+    └── es-ES.json
 ```
 
 ### `nowly build [slug]`
@@ -59,6 +63,7 @@ Build one or all presences.
 ```bash
 nowly build              # Build every presence in src/
 nowly build youtube      # Build only the "youtube" presence
+nowly build youtube -w   # Rebuild whenever the presence's source files change
 ```
 
 Each build produces:
@@ -98,9 +103,10 @@ Build a presence and zip it for drop-install in the extension Debug panel.
 
 ```bash
 nowly pack youtube
+nowly pack youtube --watch   # rebuild and rezip whenever source files change
 ```
 
-Writes `dist/packs/{slug}.zip` (`metadata.json` + `bundle.js`, plus assets and locales when present). Unsigned zips install only on unpacked builds or with developer mode enabled.
+Writes `dist/packs/{slug}.zip` (`metadata.json` + `bundle.js`, plus `settings.json`, assets, and locales when present). Unsigned zips install only on unpacked builds or with developer mode enabled.
 
 ### `nowly extension <slugs...>`
 
@@ -110,6 +116,11 @@ Download (or copy) a Chrome dev extension and bake one or more built presences i
 nowly extension youtube
 nowly extension youtube github --from ../nowly/apps/extension/dist/chrome
 ```
+
+| Option | Default | Description |
+|---|---|---|
+| `--from <url-or-path>` | `https://cdn.nowly.me/extension/nowly-canary.zip` | Extension zip URL to download, or a local extension build directory to copy |
+| `--out <dir>` | `extension-dev` | Output directory name under `dist/` |
 
 Writes `dist/extension-dev` with `dev-presences.json`. Load that folder unpacked at `chrome://extensions`.
 
@@ -147,11 +158,12 @@ Run `nowly` with no arguments to open a menu:
 
 ```
 ┌──────────────────────────────────┐
-│  Nowly CLI v1.2.2                │
+│  Nowly Presence Manager          │
 │                                  │
 │  ○ Create a new presence         │
 │  ○ Build presences               │
 │  ○ Pack a presence zip           │
+│  ○ Set up a local extension for testing │
 │  ○ List all presences            │
 │  ○ Validate presences            │
 │  ○ Exit                          │
@@ -187,30 +199,30 @@ After each action you can choose to continue or exit.
 
 ## Presence script API
 
-See [@nowly/sdk](https://github.com/nowly-presence/sdk) for the full presence API documentation.
+See [@nowly/sdk](https://github.com/nowly-presence/sdk) for the full presence API documentation. `Presence`, `Settings`, and `Assets` are globals injected by the extension at runtime - no import needed:
 
 ```typescript
-import { Presence, PresenceType } from "@nowly/presence";
+import { PresenceType } from "@nowly/sdk"
 
-const presence = new Presence({
-  Settings({
-    "show-button": {
-      title: "Show button",
-      description: "Display a button on Discord",
-      type: "boolean",
-      value: true,
-    },
-  }),
-});
+const settings = Presence.Settings({
+  "show-button": {
+    type: "boolean",
+    default: true,
+    label: { "en-US": "Show button" },
+    description: { "en-US": "Display a button on Discord" },
+  },
+})
+
+const presence = new Presence(settings)
 
 presence.on("UpdateData", async () => {
   presence.setActivity({
     details: "Browsing",
     state: "Some page",
-    largeImageKey: "logo",
+    largeImageKey: Assets.Logo,
     type: PresenceType.Watching,
-  });
-});
+  })
+})
 ```
 
 ## License
