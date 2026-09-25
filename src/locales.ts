@@ -1,11 +1,16 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "fs"
 import { join } from "path"
 
-export const SUPPORTED_PRESENCE_LOCALES = ["en-US", "fr-FR", "es-ES"] as const
+export const SUPPORTED_PRESENCE_LOCALES = [
+  "en-US", "fr-FR", "es-ES", "de-DE", "pt-BR", "pl-PL", "ja-JP", "ko-KR", "tr-TR", "ms-MY", "el-GR",
+] as const
+
+const REQUIRED_PRESENCE_LOCALE = "en-US"
 
 export type PresenceLocaleCode = typeof SUPPORTED_PRESENCE_LOCALES[number]
 export type LocaleStrings = Record<string, string>
-export type PresenceLocales = Record<PresenceLocaleCode, LocaleStrings>
+export type PresenceLocales = Partial<Record<PresenceLocaleCode, LocaleStrings>>
+  & Record<typeof REQUIRED_PRESENCE_LOCALE, LocaleStrings>
 
 const validateDictionary = (value: unknown, filename: string): LocaleStrings => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -51,7 +56,10 @@ export const loadPresenceLocales = (presenceDir: string): PresenceLocales | unde
   for (const locale of SUPPORTED_PRESENCE_LOCALES) {
     const filename = `${locale}.json`
     const path = join(localesDir, filename)
-    if (!existsSync(path)) throw new Error(`Missing locales/${filename}`)
+    if (!existsSync(path)) {
+      if (locale === REQUIRED_PRESENCE_LOCALE) throw new Error(`Missing locales/${filename}`)
+      continue
+    }
 
     let parsed: unknown
     try {
@@ -62,7 +70,11 @@ export const loadPresenceLocales = (presenceDir: string): PresenceLocales | unde
     dictionaries[locale] = validateDictionary(parsed, filename)
   }
 
-  compareKeys(dictionaries["en-US"], dictionaries["fr-FR"], "fr-FR")
-  compareKeys(dictionaries["en-US"], dictionaries["es-ES"], "es-ES")
+  for (const locale of SUPPORTED_PRESENCE_LOCALES) {
+    if (locale === REQUIRED_PRESENCE_LOCALE) continue
+    const dictionary = dictionaries[locale]
+    if (dictionary) compareKeys(dictionaries[REQUIRED_PRESENCE_LOCALE], dictionary, locale)
+  }
+
   return dictionaries
 }
