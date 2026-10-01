@@ -1,6 +1,6 @@
 import { getDistDir, type PresenceMeta } from "@/discover"
 import esbuild from "esbuild"
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs"
 import { join } from "path"
 import { fileURLToPath } from "url"
 import { loadPresenceLocales } from "@/locales"
@@ -23,7 +23,7 @@ const nowlyPresencePlugin: esbuild.Plugin = {
 export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<string | null> => {
   const presenceTsPath = join(p.dir, "presence.ts")
   if (!existsSync(presenceTsPath)) return null
-
+  if (p.metadata.iframe === true && (typeof p.metadata.iFrameRegExp !== "string" || !p.metadata.iFrameRegExp.trim())) return null
   const locales = loadPresenceLocales(p.dir)
 
   const distDir = join(getDistDir(cwd), "presences", p.slug)
@@ -50,6 +50,34 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
   })
 
   if (result.errors.length > 0) return null
+
+  const iframeBundlePath = join(distDir, "iframe.js")
+  rmSync(iframeBundlePath, { force: true })
+
+  if (p.metadata.iframe === true) {
+    const iframeTsPath = join(p.dir, "iframe.ts")
+    if (!existsSync(iframeTsPath)) return null
+
+    const iframeResult = await esbuild.build({
+      entryPoints: [iframeTsPath],
+      bundle: true,
+      format: "iife",
+      globalName: "__PRESENCE__",
+      outfile: iframeBundlePath,
+      minify: true,
+      legalComments: "none",
+      target: "es2022",
+      platform: "browser",
+      alias: {
+        "@nowly/sdk": sdkEntry,
+        "@nowly/presence": sdkEntry,
+      },
+      plugins: [nowlyPresencePlugin],
+      write: true,
+    })
+
+    if (iframeResult.errors.length > 0) return null
+  }
 
   const bundle = readFileSync(bundlePath, "utf-8")
 
