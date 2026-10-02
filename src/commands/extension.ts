@@ -133,6 +133,12 @@ export const registerExtension = (program: Command): void => {
         const bundle = readFileSync(bundlePath, "utf-8")
         const metadata = JSON.parse(readFileSync(metadataPath, "utf-8")) as Record<string, unknown>
         metadata.slug = slug
+        const iframeBundlePath = join(distDir, "presences", slug, "iframe.js")
+        const iframeBundle = existsSync(iframeBundlePath) ? readFileSync(iframeBundlePath, "utf-8") : undefined
+        if (metadata.iframe === true && !iframeBundle) {
+          spinner.fail(`Built iframe bundle not found for "${slug}"`)
+          process.exit(1)
+        }
 
         const settingsPath = join(distDir, "presences", slug, "settings.json")
         if (existsSync(settingsPath)) {
@@ -140,6 +146,8 @@ export const registerExtension = (program: Command): void => {
         }
 
         const sha256 = await sha256Base64Url(bundle)
+        const iframeSha256 = iframeBundle ? await sha256Base64Url(iframeBundle) : undefined
+
         const metadataHash = await sha256Base64Url(canonicalJson(metadata))
 
         devPresences.push({
@@ -151,6 +159,7 @@ export const registerExtension = (program: Command): void => {
             bundle,
             sha256,
             metadataHash,
+            ...(iframeBundle ? { iframeBundle, iframeSha256 } : {}),
             signature: "",
             signedAt: new Date().toISOString(),
           },

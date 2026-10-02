@@ -34,6 +34,31 @@ export const registerValidate = (program: Command) => {
         if (!p.metadata.description?.["en-US"]) issues.push("Missing description.en-US")
         const url = p.metadata.url
         if (!url || (Array.isArray(url) && url.length === 0)) issues.push("Missing metadata.url")
+        const iframeEnabled = p.metadata.iframe === true
+        const iframePattern = p.metadata.iFrameRegExp
+        if (p.metadata.iframe != null && typeof p.metadata.iframe !== "boolean") {
+          issues.push("metadata.iframe must be a boolean")
+        }
+        if (iframeEnabled && (typeof iframePattern !== "string" || !iframePattern.trim())) {
+          issues.push("metadata.iFrameRegExp is required when metadata.iframe is true")
+        }
+        if (typeof iframePattern === "string") {
+          try {
+            new RegExp(iframePattern)
+          } catch {
+            issues.push("metadata.iFrameRegExp must be a valid regular expression")
+          }
+        } else if (iframePattern != null) {
+          issues.push("metadata.iFrameRegExp must be a string")
+        }
+        if (!iframeEnabled && iframePattern != null) {
+          issues.push("metadata.iFrameRegExp requires metadata.iframe to be true")
+        }
+
+        const iframeTsPath = join(p.dir, "iframe.ts")
+        if (iframeEnabled && !existsSync(iframeTsPath)) issues.push("Missing iframe.ts for iframe presence")
+        if (!iframeEnabled && existsSync(iframeTsPath)) issues.push("iframe.ts requires metadata.iframe to be true")
+
         if (p.metadata.discordNative != null && typeof p.metadata.discordNative !== "boolean") {
           issues.push("metadata.discordNative must be a boolean")
         }
