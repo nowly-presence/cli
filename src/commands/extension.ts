@@ -20,7 +20,47 @@ import { join } from "path"
 import type { Command } from "commander"
 
 const EXTENSION_DEV_DIR = "extension-dev"
-const CDN_EXTENSION_URL = "https://cdn.nowly.me/extension/nowly-canary.zip"
+const CDN_EXTENSION_URLS = {
+  chrome: "https://cdn.nowly.me/extension/nowly-canary.zip",
+  firefox: "https://cdn.nowly.me/extension/nowly-canary-firefox.zip",
+} as const
+
+type ExtensionBrowser = keyof typeof CDN_EXTENSION_URLS
+
+const defaultOutputDir = (browser: ExtensionBrowser): string =>
+  browser === "firefox" ? `${EXTENSION_DEV_DIR}-firefox` : EXTENSION_DEV_DIR
+
+const browserLabel = (browser: ExtensionBrowser): string => (browser === "firefox" ? "Firefox" : "Chrome")
+
+type BrowserOptions = {
+  chrome?: boolean
+  c?: boolean
+  firefox?: boolean
+  f?: boolean
+}
+
+const validateBrowserOptions = (options: BrowserOptions): ExtensionBrowser => {
+  const chrome = options.chrome || options.c
+  const firefox = options.firefox || options.f
+  if (chrome && firefox) {
+    logger.error("Choose either --chrome or --firefox, not both")
+    process.exit(1)
+  }
+  return firefox ? "firefox" : "chrome"
+}
+
+const logLoadInstructions = (browser: ExtensionBrowser, extDir: string): void => {
+  logger.info(`To test in ${browserLabel(browser)}:`)
+  if (browser === "firefox") {
+    logger.raw("  1. Open about:debugging#/runtime/this-firefox")
+    logger.raw("  2. Click \"This Firefox\" → \"Load Temporary Add-on...\"")
+    logger.raw(`  3. Select: ${join(extDir, "manifest.json")}`)
+  } else {
+    logger.raw("  1. Open chrome://extensions")
+    logger.raw("  2. Enable Developer mode (top-right)")
+    logger.raw(`  3. Click \"Load unpacked\" and select: ${extDir}`)
+  }
+}
 
 const sha256Base64Url = async (input: string): Promise<string> => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input))
@@ -55,17 +95,24 @@ export const registerExtension = (program: Command): void => {
     .command("extension")
     .description("Set up a dev extension with built presences")
     .argument("<slugs...>", "Presence slug(s) to bundle (comma or space separated)")
-    .option("--from <url>", "Extension zip URL or file path", CDN_EXTENSION_URL)
-    .option("--out <dir>", "Output directory for the dev extension", EXTENSION_DEV_DIR)
-    .action(async (slugsRaw: string[], options: { from: string; out: string }) => {
+    .option("--from <url-or-path>", "Extension zip URL or file path")
+    .option("--out <dir>", "Output directory for the dev extension")
+    .option("--chrome, --c", "Use the Chrome development extension (default)")
+    .option("--firefox, --f", "Use the Firefox development extension")
+    .action(async (
+      slugsRaw: string[],
+      options: BrowserOptions & { from?: string; out?: string },
+    ) => {
       const slugs = slugsRaw.flatMap((s) => s.split(",").map((x: string) => x.trim())).filter(Boolean)
       if (slugs.length === 0) {
         logger.error("No presence slugs provided")
         process.exit(1)
       }
 
+      const browser = validateBrowserOptions(options)
+      const from = options.from ?? CDN_EXTENSION_URLS[browser]
       const distDir = getDistDir()
-      const extDir = join(distDir, options.out)
+      const extDir = join(distDir, options.out ?? defaultOutputDir(browser))
 
       for (const slug of slugs) {
         const meta = getPresenceBySlug(slug)
@@ -83,7 +130,6 @@ export const registerExtension = (program: Command): void => {
         spinner.succeed(`Built "${meta.name}" (${(bundle.length / 1024).toFixed(1)} kB)`)
       }
 
-      const from = options.from
       const isUrl = from.startsWith("http://") || from.startsWith("https://")
 
       if (isUrl) {
@@ -170,11 +216,8 @@ export const registerExtension = (program: Command): void => {
       spinner.succeed("dev-presences.json generated")
 
       logger.newline()
-      logger.success(`Dev extension ready at ${extDir}`)
-      logger.info("To test:")
-      logger.raw("  1. Open chrome://extensions")
-      logger.raw("  2. Enable Developer mode (top-right)")
-      logger.raw(`  3. Click "Load unpacked" and select: ${extDir}`)
+      logger.success(`${browserLabel(browser)} dev extension ready at ${extDir}`)
+      logLoadInstructions(browser, extDir)
       logger.newline()
     })
 }

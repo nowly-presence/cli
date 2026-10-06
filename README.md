@@ -110,19 +110,35 @@ Writes `dist/packs/{slug}.zip` (`metadata.json` + `bundle.js`, plus `settings.js
 
 ### `nowly extension <slugs...>`
 
-Download (or copy) a Chrome dev extension and bake one or more built presences into it.
+Download (or copy) a browser-specific dev extension and bake one or more built presences into it.
 
 ```bash
-nowly extension youtube
-nowly extension youtube github --from ../nowly/apps/extension/dist/chrome
+nowly extension youtube             # Chrome (default)
+nowly extension youtube --chrome
+nowly extension youtube --firefox
+nowly extension youtube --f         # Firefox alias
+nowly extension youtube --c         # Chrome alias
 ```
 
 | Option | Default | Description |
 |---|---|---|
-| `--from <url-or-path>` | `https://cdn.nowly.me/extension/nowly-canary.zip` | Extension zip URL to download, or a local extension build directory to copy |
-| `--out <dir>` | `extension-dev` | Output directory name under `dist/` |
+| `--chrome`, `--c` | yes | Use the Chrome development extension |
+| `--firefox`, `--f` | no | Use the Firefox development extension |
+| `--from <url-or-path>` | Browser-specific CDN zip | Extension zip URL or local extension build directory |
+| `--out <dir>` | `extension-dev` / `extension-dev-firefox` | Output directory name under `dist/` |
 
-Writes `dist/extension-dev` with `dev-presences.json`. Load that folder unpacked at `chrome://extensions`.
+The Chrome build downloads `https://cdn.nowly.me/extension/nowly-canary.zip`.
+The Firefox build downloads `https://cdn.nowly.me/extension/nowly-canary-firefox.zip`.
+`--chrome` and `--firefox` are mutually exclusive.
+
+The generated Chrome folder is loaded unpacked at `chrome://extensions`.
+The generated Firefox folder is loaded from `about:debugging#/runtime/this-firefox` with **Load Temporary Add-on**, selecting its `manifest.json`.
+
+```bash
+nowly extension youtube github --firefox --out firefox-dev
+```
+
+Writes the selected browser's unpacked extension with `dev-presences.json`.
 
 See [Load and test locally](https://nowly.me/docs/presence-development/load-and-test).
 
