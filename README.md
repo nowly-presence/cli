@@ -1,246 +1,119 @@
 # @nowly/cli
 
-CLI to create, build, and validate [Nowly](https://nowly.me) presences.
+Create, validate, build, and test [Nowly](https://nowly.me) presences from a presence workspace. This guide describes the CLI at [source revision `2ab9147`](https://github.com/nowly-presence/cli/tree/2ab914740a2f110196ba8c172922664919d2d8b0).
 
-## Install
+- [Get started](#get-started)
+- [Commands](#commands)
+- [Language packs](#language-packs)
+- [CLI development and references](#cli-development-and-references)
 
-```bash
+## Get started
+
+Use **Node.js 22 or newer**. Install the published command:
+
+```sh
 npm install -g @nowly/cli
 ```
 
-Requires **Node.js 22+**.
+Run commands from a workspace containing `src/`, such as the [presences repository](https://github.com/nowly-presence/presences). The CLI also discovers `packages/presences/src/` when run from a parent workspace without its own `src/`; generated `dist/` goes beside the discovered `src/`. Presence directories live under `src/<initial>/<Name>/`, and slugs are lowercase names with spaces replaced by hyphens.
 
-## Quick start
-
-```bash
-nowly init "YouTube"
-cd src/Y/YouTube
-# Edit presence.ts, then:
-nowly build YouTube
+```sh
+nowly init "Example"
+# At the prompts, use the example.com domain and your own author details.
+# Edit src/E/Example/presence.ts and its metadata before testing.
+nowly validate example
+nowly build example
+nowly list
 ```
 
-`nowly build` outputs to `dist/presences/{slug}/` with `bundle.js`, `metadata.json`, and optional settings and language packs.
+`init` asks for the missing category, color, URLs, author, optional GitHub handle, description, and whether Discord already supports the platform through linked accounts. It scaffolds `src/E/Example/` with `presence.ts`, `metadata.json`, `assets/`, and `locales/en-US.json`, `fr-FR.json`, and `es-ES.json`. Keep working from the workspace root for the subsequent commands. Running `nowly` without arguments opens an interactive menu for these workflows.
 
 ## Commands
 
-### `nowly init [name]`
+### Initialize: `nowly init [name]`
 
-Scaffold a new presence.
+| Option | Purpose |
+| --- | --- |
+| `--category <category>` | Choose `streaming`, `music`, `video`, `social`, `gaming`, `tools`, `ai`, `learning`, `creator`, or `other`. |
+| `--color <hex>` | Presence accent color (prompt default `#555555`). |
+| `--urls <urls>` | Comma-separated URL entries for the presence metadata. |
+| `--author <name>` | Author name (prompt default `Nowly`). |
+| `--github <handle>` | Author GitHub handle. |
+| `--description <text>` | English (`en-US`) description. |
+| `--discord-native` | Record `discordNative: true` for a platform Discord already supports through account linking. Without it, answer the yes/no prompt (default no). |
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `--category` | string | - | `streaming`, `music`, `video`, `social`, `gaming`, `tools`, `ai`, `learning`, `creator`, `other` |
-| `--color` | hex | `#555555` | Accent color for the presence |
-| `--urls` | string | - | Comma-separated list of URLs the presence runs on |
-| `--author` | string | `Nowly` | Author name |
-| `--github` | string | - | Author GitHub handle |
-| `--description` | string | - | Short description (en-US) |
-| `--discord-native` | boolean | prompt | Write `discordNative: true` when Discord already supports the platform via account linking |
+For a non-interactive example, provide all text options and `--discord-native` **only when it is accurate for the platform**. Otherwise, answer the final prompt; do not use that flag merely to bypass it. See [the init implementation](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/commands/init.ts) and [generated template](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/templates/presence.ts).
 
-Omitting an option starts an interactive prompt. Without `--discord-native`, init asks this as a yes/no (default no) and only writes the flag when the answer is yes.
+### Validate: `nowly validate [slug]`
 
-```bash
-nowly init "Netflix" --category streaming --color "#E50914" --urls "netflix.com" --author "Steellgold"
-nowly init "Spotify" --discord-native
+```sh
+nowly validate          # All discovered presences
+nowly validate example  # One presence
 ```
 
-Creates:
-```
-src/N/Netflix/
-├── presence.ts
-├── metadata.json
-├── assets/
-└── locales/
-    ├── en-US.json
-    ├── fr-FR.json
-    └── es-ES.json
+Reports valid/invalid counts and issues with required metadata (`name`, `color`, `category`, `description.en-US`, and `url`), `presence.ts`, `assets/`, and `locales/en-US.json`. It also checks optional `discordNative` and iframe metadata/source consistency, plus language-pack contents. **The command reports issues but does not set a failing exit status for invalid presences**; read its results rather than using its exit code as a CI gate. [Validation source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/commands/validate.ts).
+
+### Build: `nowly build [slug]`
+
+```sh
+nowly build                  # Every discovered presence
+nowly build example          # One presence
+nowly build example --watch  # Rebuild on source changes (also: -w)
 ```
 
-### `nowly build [slug]`
+Produces `dist/presences/<slug>/bundle.js` (minified browser IIFE targeting ES2022) and `metadata.json`. When applicable, it also writes `iframe.js`, extracted `settings.json`, and copies `assets/` and `locales/`. Language packs are included in the built metadata. A source file named `iframe.ts` requires matching iframe metadata; consult the [SDK iframe guide](https://github.com/nowly-presence/sdk/tree/stable#iframe-scripts). [Build source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/builder.ts).
 
-Build one or all presences.
+### Pack: `nowly pack <slug>`
 
-```bash
-nowly build              # Build every presence in src/
-nowly build youtube      # Build only the "youtube" presence
-nowly build youtube -w   # Rebuild whenever the presence's source files change
+```sh
+nowly pack example
+nowly pack example --watch  # Rebuild and rezip on changes (also: -w)
 ```
 
-Each build produces:
-- `dist/presences/{slug}/bundle.js` - Minified IIFE (esbuild, `es2022` target)
-- `dist/presences/{slug}/metadata.json` - Presence metadata
-- `dist/presences/{slug}/settings.json` - Extracted user settings (if any)
-- `dist/presences/{slug}/assets/` - Copied assets
+Builds the presence first, then zips its output as `dist/packs/<slug>.zip`; the archive includes `bundle.js` and `metadata.json`, plus any other built files. Drop it in the extension's Debug panel when using an unpacked development build. Unsigned zip installs are not for store-installed builds; see [Load and test locally](https://docs.nowly.me/presence-development/load-and-test). On non-Windows systems packing calls the system `zip` tool. [Pack source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/commands/pack.ts).
 
-A `dist/presences/registry.json` is generated listing all built presences. When a presence
-contains a `locales` directory, its validated JSON files are also copied to
-`dist/presences/{slug}/locales/` and included in generated metadata.
+### Test in a browser: `nowly extension <slugs...>`
 
-### Optional language packs
-
-A presence can keep using inline strings without adding language files. To localize its Discord text, add all three supported dictionaries:
-
-```text
-src/Y/YouTube/locales/
-├── en-US.json
-├── fr-FR.json
-└── es-ES.json
+```sh
+nowly extension example             # Chrome (default)
+nowly extension example --firefox   # Firefox
 ```
 
-Each file must be a flat JSON object containing the same keys and string values. `en-US.json` is the reference dictionary and runtime fallback. Invalid JSON, unsupported files, missing locales, non-string values, and mismatched keys fail validation and builds.
+Builds the named presences (space- or comma-separated), obtains a browser-specific development extension, and writes an unpacked folder with `dev-presences.json`. Chrome defaults to `dist/extension-dev/`; Firefox defaults to `dist/extension-dev-firefox/`.
 
-Use the English dictionary to get typed autocomplete without generating types:
+| Option | Purpose |
+| --- | --- |
+| `--chrome`, `--c` | Select Chrome (the default). |
+| `--firefox`, `--f` | Select Firefox; do not combine with Chrome selection. |
+| `--from <url-or-path>` | Use an extension zip URL or a local **extension directory** instead of the selected browser's CDN zip. |
+| `--out <dir>` | Set the output directory name beneath `dist/`. |
 
-```typescript
+The default downloads are `https://cdn.nowly.me/extension/nowly-canary.zip` for Chrome and `https://cdn.nowly.me/extension/nowly-canary-firefox.zip` for Firefox. For Chrome, enable Developer mode at `chrome://extensions` and select the generated folder with **Load unpacked**. For Firefox, use **Load Temporary Add-on** at `about:debugging#/runtime/this-firefox` and select the generated `manifest.json`. See [local testing instructions](https://docs.nowly.me/presence-development/load-and-test) and [extension source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/commands/extension.ts).
+
+### List: `nowly list`
+
+`nowly list` (alias `nowly ls`) lists discovered presence names, categories, and slugs under `src/`. [List source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/commands/list.ts).
+
+## Language packs
+
+Language packs are optional for a presence using inline strings. If `locales/` exists, it must include `en-US.json`; other supported files are `fr-FR.json`, `es-ES.json`, `de-DE.json`, `pt-BR.json`, `pl-PL.json`, `ja-JP.json`, `ko-KR.json`, `tr-TR.json`, `ms-MY.json`, and `el-GR.json`. Each is a flat JSON object of string values, with exactly the same keys as `en-US.json`. Unknown files, directories inside `locales/`, invalid JSON, or mismatched keys fail locale loading in validation/build. You need not supply every supported language. [Locale validation source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/locales.ts).
+
+The generated presence demonstrates typed localization without generated types:
+
+```ts
 import type enUS from "./locales/en-US.json"
 
-const locale = await presence.getStrings<typeof enUS>()
-```
-
-### `nowly pack <slug>`
-
-Build a presence and zip it for drop-install in the extension Debug panel.
-
-```bash
-nowly pack youtube
-nowly pack youtube --watch   # rebuild and rezip whenever source files change
-```
-
-Writes `dist/packs/{slug}.zip` (`metadata.json` + `bundle.js`, plus `settings.json`, assets, and locales when present). Unsigned zips install only on unpacked builds or with developer mode enabled.
-
-### `nowly extension <slugs...>`
-
-Download (or copy) a browser-specific dev extension and bake one or more built presences into it.
-
-```bash
-nowly extension youtube             # Chrome (default)
-nowly extension youtube --chrome
-nowly extension youtube --firefox
-nowly extension youtube --f         # Firefox alias
-nowly extension youtube --c         # Chrome alias
-```
-
-| Option | Default | Description |
-|---|---|---|
-| `--chrome`, `--c` | yes | Use the Chrome development extension |
-| `--firefox`, `--f` | no | Use the Firefox development extension |
-| `--from <url-or-path>` | Browser-specific CDN zip | Extension zip URL or local extension build directory |
-| `--out <dir>` | `extension-dev` / `extension-dev-firefox` | Output directory name under `dist/` |
-
-The Chrome build downloads `https://cdn.nowly.me/extension/nowly-canary.zip`.
-The Firefox build downloads `https://cdn.nowly.me/extension/nowly-canary-firefox.zip`.
-`--chrome` and `--firefox` are mutually exclusive.
-
-The generated Chrome folder is loaded unpacked at `chrome://extensions`.
-The generated Firefox folder is loaded from `about:debugging#/runtime/this-firefox` with **Load Temporary Add-on**, selecting its `manifest.json`.
-
-```bash
-nowly extension youtube github --firefox --out firefox-dev
-```
-
-Writes the selected browser's unpacked extension with `dev-presences.json`.
-
-See [Load and test locally](https://nowly.me/docs/presence-development/load-and-test).
-
-### `nowly list` (alias: `ls`)
-
-List all presences in `src/`.
-
-```bash
-nowly list
-
-  Name       Category      Slug
- ─────────────────────────────────
-  YouTube    video         youtube
-  Netflix    streaming     netflix
-  GitHub     tools         github
-  ...
-```
-
-### `nowly validate [slug]`
-
-Validate presence metadata and structure.
-
-```bash
-nowly validate           # Validate all presences
-nowly validate youtube   # Validate only "youtube"
-```
-
-Checks for required fields: `name`, `color`, `category`, `description.en-US`, `url`, `presence.ts`, `locales/en-US.json`, and `assets/`. If `discordNative` is present, it must be a boolean.
-
-## Interactive mode
-
-Run `nowly` with no arguments to open a menu:
-
-```
-┌──────────────────────────────────┐
-│  Nowly Presence Manager          │
-│                                  │
-│  ○ Create a new presence         │
-│  ○ Build presences               │
-│  ○ Pack a presence zip           │
-│  ○ Set up a local extension for testing │
-│  ○ List all presences            │
-│  ○ Validate presences            │
-│  ○ Exit                          │
-└──────────────────────────────────┘
-```
-
-After each action you can choose to continue or exit.
-
-## Project structure
-
-```
-├── src/
-│   ├── A/
-│   │   └── Amazon/
-│   │       ├── presence.ts
-│   │       └── metadata.json
-│   ├── G/
-│   │   └── GitHub/
-│   │       ├── presence.ts
-│   │       └── metadata.json
-│   └── ...
-├── dist/
-│   └── presences/
-│       ├── amazon/
-│       │   ├── bundle.js
-│       │   ├── metadata.json
-│       │   └── settings.json
-│       ├── github/
-│       │   └── ...
-│       └── registry.json
-└── package.json
-```
-
-## Presence script API
-
-See [@nowly/sdk](https://github.com/nowly-presence/sdk) for the full presence API documentation. `Presence`, `Settings`, and `Assets` are globals injected by the extension at runtime - no import needed:
-
-```typescript
-import { PresenceType } from "@nowly/sdk"
-
-const settings = Presence.Settings({
-  "show-button": {
-    type: "boolean",
-    default: true,
-    label: { "en-US": "Show button" },
-    description: { "en-US": "Display a button on Discord" },
-  },
-})
-
-const presence = new Presence(settings)
-
+const presence = new Presence()
 presence.on("UpdateData", async () => {
-  presence.setActivity({
-    details: "Browsing",
-    state: "Some page",
-    largeImageKey: Assets.Logo,
-    type: PresenceType.Watching,
-  })
+  const strings = await presence.getStrings<typeof enUS>()
+  await presence.setActivity({ details: strings.browsing })
 })
 ```
 
-## License
+For interpolation such as `"Browsing {hostname}"`, use `presence.formatString(strings.browsing, { hostname })` as in the [scaffold template](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/templates/presence.ts). `Presence` and `Assets` are runtime globals; import SDK values and types as needed. See the [SDK guide](https://github.com/nowly-presence/sdk/tree/stable) for the presence API.
 
-[MIT](./LICENSE)
+## CLI development and references
+
+The [CLI source](https://github.com/nowly-presence/cli/tree/2ab914740a2f110196ba8c172922664919d2d8b0/src) registers commands in `src/index.ts`; their implementations are in `src/commands/`. For contributors changing the CLI rather than authoring a presence, the [package manifest](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/package.json) defines `pnpm build` (`tsup`) and runs it via `prepack`. It declares `@nowly/sdk` as a workspace dependency, so a source build needs that workspace dependency available. The published `nowly` entry point is `bin/cli.js` and imports `dist/index.js`.
+
+License: [MIT](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/LICENSE).
