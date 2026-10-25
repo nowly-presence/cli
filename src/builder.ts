@@ -4,6 +4,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } fr
 import { join } from "path"
 import { fileURLToPath } from "url"
 import { loadPresenceLocales } from "@/locales"
+import { loadSettingsFile } from "@/settings"
 
 const sdkEntry = fileURLToPath(import.meta.resolve("@nowly/sdk"))
 const sdkSrc = join(sdkEntry, "..", "..", "src")
@@ -25,6 +26,12 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
   if (!existsSync(presenceTsPath)) return null
   if (p.metadata.iframe === true && (typeof p.metadata.iFrameRegExp !== "string" || !p.metadata.iFrameRegExp.trim())) return null
   const locales = loadPresenceLocales(p.dir)
+  const fileSettings = await loadSettingsFile(p.dir)
+  const settings = fileSettings ?? extractSettings(readFileSync(presenceTsPath, "utf-8"))
+  const settingsOptions = fileSettings === null ? {} : {
+    banner: { js: `const __NOWLY_FILE_SETTINGS__ = () => Presence.Settings(${JSON.stringify(fileSettings)}); __NOWLY_FILE_SETTINGS__();` },
+    define: { "Presence.Settings": "__NOWLY_FILE_SETTINGS__" },
+  }
 
   const distDir = join(getDistDir(cwd), "presences", p.slug)
   mkdirSync(distDir, { recursive: true })
@@ -32,6 +39,7 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
   const bundlePath = join(distDir, "bundle.js")
 
   const result = await esbuild.build({
+    ...settingsOptions,
     entryPoints: [presenceTsPath],
     bundle: true,
     format: "iife",
@@ -59,6 +67,7 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
     if (!existsSync(iframeTsPath)) return null
 
     const iframeResult = await esbuild.build({
+      ...settingsOptions,
       entryPoints: [iframeTsPath],
       bundle: true,
       format: "iife",
@@ -81,10 +90,10 @@ export const buildPresence = async (p: PresenceMeta, cwd?: string): Promise<stri
 
   const bundle = readFileSync(bundlePath, "utf-8")
 
-  const source = readFileSync(presenceTsPath, "utf-8")
-  const settings = extractSettings(source)
   if (settings) {
     writeFileSync(join(distDir, "settings.json"), JSON.stringify(settings, null, 2))
+  } else {
+    rmSync(join(distDir, "settings.json"), { force: true })
   }
 
   const metadata = locales ? { ...p.metadata, locales } : p.metadata
@@ -112,20 +121,14 @@ export const buildAllPresences = async (presences: PresenceMeta[], cwd?: string)
   for (const p of presences) {
     const bundle = await buildPresence(p, cwd)
     if (bundle) {
-      const settings = extractSettingsFromFile(p.dir)
+      const settingsPath = join(getDistDir(cwd), "presences", p.slug, "settings.json")
+      const settings = existsSync(settingsPath) ? JSON.parse(readFileSync(settingsPath, "utf-8")) : null
       const locales = loadPresenceLocales(p.dir)
       registry.push({ ...p.metadata, slug: p.slug, settings, ...(locales ? { locales } : {}) })
     }
   }
 
   writeFileSync(join(getDistDir(cwd), "registry.json"), JSON.stringify(registry, null, 2))
-}
-
-const extractSettingsFromFile = (dir: string): any | null => {
-  const tsPath = join(dir, "presence.ts")
-  if (!existsSync(tsPath)) return null
-  const source = readFileSync(tsPath, "utf-8")
-  return extractSettings(source)
 }
 
 const extractSettings = (source: string): any | null => {

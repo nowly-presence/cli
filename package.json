@@ -1,6 +1,6 @@
 {
   "name": "@nowly/cli",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "license": "MIT",
   "author": {
     "name": "Gaëtan H",
@@ -26,8 +26,7 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@nowly/cli": "link:",
-    "@nowly/sdk": "workspace:*",
+    "@nowly/sdk": "^1.6.0",
     "chalk": "^5.6.2",
     "commander": "^15.0.0",
     "dotenv": "^17.4.2",

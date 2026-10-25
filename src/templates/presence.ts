@@ -1,7 +1,25 @@
 export const presenceTs = `import { PresenceType } from "@nowly/sdk"
 import type enUS from "./locales/en-US.json"
 
-const settings = Presence.Settings({
+const presence = new Presence()
+
+presence.on("UpdateData", async (ctx) => {
+  const { hostname, pathname, href } = document.location
+  const locale = await presence.getStrings<typeof enUS>()
+
+  await presence.setActivity({
+    details: presence.formatString(locale.browsing, { hostname }),
+    state: pathname,
+    largeImageKey: Assets.Logo,
+    type: PresenceType.Watching,
+    buttons: ctx.settings.showButtons === false ? undefined : [{ label: hostname, url: href }],
+  })
+})
+`
+
+export const settingsTs = `import type { PresenceSetting } from "@nowly/sdk"
+
+export default {
   showButtons: {
     type: "boolean",
     default: true,
@@ -11,23 +29,7 @@ const settings = Presence.Settings({
       "es-ES": "Mostrar botones",
     },
   },
-})
-
-const presence = new Presence()
-
-presence.on("UpdateData", async () => {
-  const { hostname, pathname, href } = document.location
-  const locale = await presence.getStrings<typeof enUS>()
-  const showButtons = await presence.getSetting<boolean>("showButtons")
-
-  await presence.setActivity({
-    details: presence.formatString(locale.browsing, { hostname }),
-    state: pathname,
-    largeImageKey: Assets.Logo,
-    type: PresenceType.Watching,
-    buttons: showButtons === false ? undefined : [{ label: hostname, url: href }],
-  })
-})
+} satisfies Record<string, PresenceSetting>
 `
 
 export const localeJson = (browsing: string): string =>

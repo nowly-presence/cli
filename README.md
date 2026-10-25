@@ -1,10 +1,11 @@
 # @nowly/cli
 
-Create, validate, build, and test [Nowly](https://nowly.me) presences from a presence workspace. This guide describes the CLI at [source revision `2ab9147`](https://github.com/nowly-presence/cli/tree/2ab914740a2f110196ba8c172922664919d2d8b0).
+Create, validate, build, and test [Nowly](https://nowly.me) presences from a presence workspace. This guide covers CLI 1.7.0, including separate settings files. Older pinned source links below describe the unchanged command behavior.
 
 - [Get started](#get-started)
 - [Commands](#commands)
 - [Language packs](#language-packs)
+- [Settings](#settings)
 - [CLI development and references](#cli-development-and-references)
 
 ## Get started
@@ -26,7 +27,7 @@ nowly build example
 nowly list
 ```
 
-`init` asks for the missing category, color, URLs, author, optional GitHub handle, description, and whether Discord already supports the platform through linked accounts. It scaffolds `src/E/Example/` with `presence.ts`, `metadata.json`, `assets/`, and `locales/en-US.json`, `fr-FR.json`, and `es-ES.json`. Keep working from the workspace root for the subsequent commands. Running `nowly` without arguments opens an interactive menu for these workflows.
+`init` asks for the missing category, color, URLs, author, optional GitHub handle, description, and whether Discord already supports the platform through linked accounts. It scaffolds `src/E/Example/` with `presence.ts`, `settings.ts`, `metadata.json`, `assets/`, and `locales/en-US.json`, `fr-FR.json`, and `es-ES.json`. Keep working from the workspace root for the subsequent commands. Running `nowly` without arguments opens an interactive menu for these workflows.
 
 ## Commands
 
@@ -112,8 +113,34 @@ presence.on("UpdateData", async () => {
 
 For interpolation such as `"Browsing {hostname}"`, use `presence.formatString(strings.browsing, { hostname })` as in the [scaffold template](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/templates/presence.ts). `Presence` and `Assets` are runtime globals; import SDK values and types as needed. See the [SDK guide](https://github.com/nowly-presence/sdk/tree/stable) for the presence API.
 
+## Settings
+
+CLI 1.7.0 prefers a `settings.ts` beside `presence.ts`:
+
+```ts
+import type { PresenceSetting } from "@nowly/sdk"
+
+export default {
+  showButtons: {
+    type: "boolean",
+    default: true,
+    label: { "en-US": "Show buttons" },
+  },
+} satisfies Record<string, PresenceSetting>
+```
+
+In `presence.ts`, use the usual constructor. No settings import or registration call is needed:
+
+```ts
+const presence = new Presence()
+```
+
+The file completely overrides legacy inline `Presence.Settings({ ... })` definitions; sources are not merged. Invalid exports fail the build instead of falling back. When the file is absent, existing inline definitions still work. Definitions must be JSON-compatible and cannot use browser or Node APIs. Boolean, input, select and slider controls are supported, as are shorthand boolean, string and numeric defaults.
+
+Builds still emit `settings.json` for the extension and register defaults in both main and iframe bundles. User-saved settings take priority over defaults, including on older extensions. No bulk migration of existing presences is required.
+
 ## CLI development and references
 
-The [CLI source](https://github.com/nowly-presence/cli/tree/2ab914740a2f110196ba8c172922664919d2d8b0/src) registers commands in `src/index.ts`; their implementations are in `src/commands/`. For contributors changing the CLI rather than authoring a presence, the [package manifest](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/package.json) defines `pnpm build` (`tsup`) and runs it via `prepack`. It declares `@nowly/sdk` as a workspace dependency, so a source build needs that workspace dependency available. The published `nowly` entry point is `bin/cli.js` and imports `dist/index.js`.
+The [CLI source](https://github.com/nowly-presence/cli/tree/stable/src) registers commands in `src/index.ts`; their implementations are in `src/commands/`. For contributors changing the CLI rather than authoring a presence, the [package manifest](https://github.com/nowly-presence/cli/blob/stable/package.json) defines `pnpm build` (`tsup`) and runs it via `prepack`. Run `pnpm install` once SDK 1.6.0 is available, then `pnpm build`. The published `nowly` entry point is `bin/cli.js` and imports `dist/index.js`.
 
 License: [MIT](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/LICENSE).
