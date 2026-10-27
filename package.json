@@ -1,22 +1,28 @@
 {
   "name": "@nowly/cli",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Nowly command-line tools to scaffold, build, validate, package and test website presences.",
   "homepage": "https://docs.nowly.me",
   "repository": {
     "type": "git",
     "url": "https://github.com/nowly-presence/cli.git"
   },
-  "bugs": { "url": "https://github.com/nowly-presence/cli/issues" },
+  "bugs": {
+    "url": "https://github.com/nowly-presence/cli/issues"
+  },
   "license": "MIT",
   "contributors": [
-    { "name": "Gaëtan H", "url": "https://github.com/Steellgold" },
+    {
+      "name": "Gaëtan H",
+      "url": "https://github.com/Steellgold"
+    },
     {
       "name": "Anthony (KiMi)",
       "url": "https://github.com/q-kimi"
     }
   ],
   "type": "module",
+  "packageManager": "pnpm@11.25.0",
   "bin": {
     "nowly": "./bin/cli.js"
   },
@@ -27,6 +33,9 @@
   ],
   "scripts": {
     "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "coverage": "vitest run --coverage",
     "prepack": "pnpm build"
   },
   "dependencies": {
@@ -42,6 +51,8 @@
     "@types/node": "^26.5.1",
     "tsup": "^8.5.1",
     "tsx": "^4.23.13",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "4.1.9",
+    "@vitest/coverage-v8": "4.1.9"
   }
 }
