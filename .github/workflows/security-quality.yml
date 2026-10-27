@@ -35,24 +35,6 @@ jobs:
           path: coverage/cobertura-coverage.xml
           if-no-files-found: error
 
-  upload-coverage:
-    needs: test
-    if: ${{ !cancelled() && needs.test.result == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      code-quality: write
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: coverage-report-cli
-      - uses: actions/upload-code-coverage@v1
-        with:
-          file: cobertura-coverage.xml
-          language: TypeScript
-          label: code-coverage-cli
-          fail-on-error: false
-
   analyze:
     runs-on: ubuntu-latest
     permissions:
