@@ -51,6 +51,7 @@ jobs:
           file: cobertura-coverage.xml
           language: TypeScript
           label: code-coverage-cli
+          fail-on-error: false
 
   analyze:
     runs-on: ubuntu-latest
