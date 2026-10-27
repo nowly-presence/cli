@@ -1,2 +1,5 @@
 overrides:
   '@nowly/cli': 'link:'
+
+allowBuilds:
+  esbuild: true
