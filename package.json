@@ -32,11 +32,15 @@
     "bin"
   ],
   "scripts": {
+    "prepare": "simple-git-hooks",
     "build": "tsup",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "coverage": "vitest run --coverage",
     "prepack": "pnpm build"
+  },
+  "simple-git-hooks": {
+    "commit-msg": "node scripts/validate-commit-message.ts \"$1\""
   },
   "dependencies": {
     "@nowly/sdk": "^1.6.0",
@@ -49,10 +53,11 @@
   },
   "devDependencies": {
     "@types/node": "^26.5.1",
+    "@vitest/coverage-v8": "4.1.9",
+    "simple-git-hooks": "^2.14.0",
     "tsup": "^9.0.0",
     "tsx": "^4.23.13",
     "typescript": "7.0.2",
-    "vitest": "4.1.9",
-    "@vitest/coverage-v8": "4.1.9"
+    "vitest": "4.1.9"
   }
 }
