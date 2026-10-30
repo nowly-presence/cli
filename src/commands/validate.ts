@@ -1,4 +1,5 @@
-import { getPresenceBySlug, getPresences } from "@/discover"
+import { getAliasIssues } from "@/aliases"
+import { getPresences } from "@/discover"
 import { logger } from "@/logger"
 import type { Command } from "commander"
 import { existsSync } from "fs"
@@ -14,9 +15,8 @@ export const registerValidate = (program: Command) => {
       logger.newline()
       logger.title("✦ Validate presences")
 
-      const presences = slug
-        ? (() => { const p = getPresenceBySlug(slug); return p ? [p] : [] })()
-        : getPresences()
+      const allPresences = getPresences()
+      const presences = slug ? allPresences.filter((p) => p.slug === slug) : allPresences
       if (presences.length === 0) {
         logger.warning("No presences to validate")
         return
@@ -62,6 +62,8 @@ export const registerValidate = (program: Command) => {
         if (p.metadata.discordNative != null && typeof p.metadata.discordNative !== "boolean") {
           issues.push("metadata.discordNative must be a boolean")
         }
+
+        issues.push(...getAliasIssues(p, allPresences))
 
         const presenceTsPath = join(p.dir, "presence.ts")
         if (!existsSync(presenceTsPath)) issues.push("Missing presence.ts")

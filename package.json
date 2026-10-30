@@ -1,6 +1,6 @@
 {
   "name": "@nowly/cli",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "Nowly command-line tools to scaffold, build, validate, package and test website presences.",
   "homepage": "https://docs.nowly.me",
   "repository": {

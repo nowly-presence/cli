@@ -1,6 +1,6 @@
 # @nowly/cli
 
-Create, validate, build, and test [Nowly](https://nowly.me) presences from a presence workspace. This guide covers CLI 1.7.0, including separate settings files. Older pinned source links below describe the unchanged command behavior.
+Create, validate, build, and test [Nowly](https://nowly.me) presences from a presence workspace. This guide covers CLI 1.8.0, including separate settings files and presence aliases. Older pinned source links below describe the unchanged command behavior.
 
 - [Get started](#get-started)
 - [Commands](#commands)
@@ -52,7 +52,7 @@ nowly validate          # All discovered presences
 nowly validate example  # One presence
 ```
 
-Reports valid/invalid counts and issues with required metadata (`name`, `color`, `category`, `description.en-US`, and `url`), `presence.ts`, `assets/`, and `locales/en-US.json`. It also checks optional `discordNative` and iframe metadata/source consistency, plus language-pack contents. **The command reports issues but does not set a failing exit status for invalid presences**; read its results rather than using its exit code as a CI gate. [Validation source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/commands/validate.ts).
+Reports valid/invalid counts and issues with required metadata (`name`, `color`, `category`, `description.en-US`, and `url`), `presence.ts`, `assets/`, and `locales/en-US.json`. It also checks optional `discordNative` and iframe metadata/source consistency, plus language-pack contents. Since CLI 1.8.0 it checks optional `aliases` (alternative library URL slugs): at most 10 lowercase entries using letters, digits, dots or hyphens, none repeating the presence slug, and none already used as a slug or alias by another presence in the workspace. **The command reports issues but does not set a failing exit status for invalid presences**; read its results rather than using its exit code as a CI gate. [Validation source](https://github.com/nowly-presence/cli/blob/2ab914740a2f110196ba8c172922664919d2d8b0/src/commands/validate.ts).
 
 ### Build: `nowly build [slug]`
 
